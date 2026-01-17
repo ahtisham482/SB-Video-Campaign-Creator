@@ -1,0 +1,980 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simplified Sponsored Brands Campaign Generator</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        .container {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 2.2em;
+        }
+
+        .section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            background: #fafafa;
+        }
+
+        .section h2 {
+            color: #444;
+            margin-bottom: 15px;
+            font-size: 1.4em;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #555;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+            box-sizing: border-box;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .inline-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .triple-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 15px;
+        }
+
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: transform 0.3s, box-shadow 0.3s;
+            margin-right: 10px;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .generate-btn {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            font-size: 18px;
+            padding: 15px 30px;
+        }
+
+        .output-section {
+            margin-top: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border: 2px solid #dee2e6;
+        }
+
+        #output {
+            background: white;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            white-space: pre-wrap;
+            max-height: 400px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+        }
+
+        .required {
+            color: #e74c3c;
+        }
+
+        .help-text {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .copy-btn {
+            background: #17a2b8;
+            margin-top: 10px;
+        }
+
+        .toggle-section {
+            background: #e8f4f8;
+            border-left: 4px solid #17a2b8;
+            margin-bottom: 15px;
+        }
+
+        .warning {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            color: #856404;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+        }
+
+        .info {
+            background: #d1ecf1;
+            border: 1px solid #bee5eb;
+            color: #0c5460;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+        }
+
+        .preview-section {
+            background: #e8f5e8;
+            border-left: 4px solid #28a745;
+            padding: 15px;
+            margin-top: 15px;
+            border-radius: 5px;
+        }
+
+        .campaign-preview {
+            background: white;
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+        }
+
+        .format-specific {
+            border-left: 4px solid #e74c3c;
+            background: #ffeaea;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Simplified Campaign Generator</h1>
+        
+        <div class="section">
+            <h2>Campaign Configuration</h2>
+            <div class="inline-group">
+                <div class="form-group">
+                    <label for="keywordsPerAdGroup">Keywords per Ad Group <span class="required">*</span></label>
+                    <input type="number" id="keywordsPerAdGroup" min="1" max="50" value="5" onchange="updatePreview()">
+                    <div class="help-text">This determines how many campaigns will be created</div>
+                </div>
+                <div class="form-group">
+                    <label for="budgetType">Budget Type <span class="required">*</span></label>
+                    <select id="budgetType">
+                        <option value="Daily">Daily</option>
+                        <option value="Lifetime">Lifetime</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Global Settings</h2>
+            <div class="inline-group">
+                <div class="form-group">
+                    <label for="startDate">Start Date</label>
+                    <input type="date" id="startDate">
+                    <div class="help-text">Leave blank to start today</div>
+                </div>
+                <div class="form-group">
+                    <label for="bidOptimization">Bid Optimization <span class="required">*</span></label>
+                    <select id="bidOptimization" onchange="toggleBidAdjustment()">
+                        <option value="true">True (Auto)</option>
+                        <option value="false">False (Manual with bid adjustment)</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="inline-group">
+                <div class="form-group">
+                    <label for="brandEntityId">Brand Entity ID</label>
+                    <input type="text" id="brandEntityId">
+                    <div class="help-text">For sellers only - leave blank if vendor</div>
+                </div>
+                <div class="form-group">
+                    <!-- Empty space to maintain layout -->
+                </div>
+            </div>
+
+            <div id="bidAdjustmentSection" class="toggle-section" style="display: none;">
+                <h3>Bid Adjustment by Placement</h3>
+                <div class="warning">
+                    Note: Bid adjustments only apply to Product Collection campaigns, not Video campaigns.
+                </div>
+                <div class="triple-group">
+                    <div class="form-group">
+                        <label for="homeAdjustment">Home Page (%)</label>
+                        <input type="number" id="homeAdjustment" placeholder="e.g., 40">
+                    </div>
+                    <div class="form-group">
+                        <label for="detailAdjustment">Detail Page (%)</label>
+                        <input type="number" id="detailAdjustment" placeholder="e.g., 25">
+                    </div>
+                    <div class="form-group">
+                        <label for="otherAdjustment">Other Placement (%)</label>
+                        <input type="number" id="otherAdjustment" placeholder="e.g., 10">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Ad Format Settings</h2>
+            <div class="form-group">
+                <label for="adFormat">Ad Format <span class="required">*</span></label>
+                <select id="adFormat" onchange="toggleAdFormatFields()">
+                    <option value="video">Video</option>
+                    <option value="productCollection">Product Collection</option>
+                    <option value="storeSpotlight">Store Spotlight</option>
+                    <option value="brandVideo">Brand Video</option>
+                </select>
+            </div>
+
+            <div id="videoFields" class="format-specific">
+                <h3>Video Campaign Settings</h3>
+                <div class="info">
+                    <strong>Video Campaign Structure:</strong> Campaign → Ad Group → Video Ad → Keywords<br>
+                    <strong>Landing Page:</strong> Auto-generated to product detail page<br>
+                    <strong>Video Requirements:</strong> 1 ASIN, Video Asset ID required, NO Creative Headline<br>
+                    <strong>Brand Video Requirements:</strong> 3 ASINs, Video Asset ID required, Creative Headline required<br>
+                    <strong>Note:</strong> Video campaigns do NOT require Brand Name
+                </div>
+                <div class="form-group">
+                    <label for="videoAssetIds">Video Asset IDs <span class="required">*</span></label>
+                    <input type="text" id="videoAssetIds" required>
+                    <div class="help-text">Asset ID from Brand Assets Tab (e.g., amzn1.assetlibrary.asset1.xxxxx)</div>
+                </div>
+            </div>
+
+            <div id="brandVideoFields" class="format-specific" style="display: none;">
+                <h3>Brand Video Campaign Settings</h3>
+                <div class="info">
+                    <strong>Brand Video Structure:</strong> Campaign → Ad Group → Video Ad → Keywords<br>
+                    <strong>Requirements:</strong> 3 ASINs, Video Asset ID, Creative Headline, Brand Name required
+                </div>
+                <div class="inline-group">
+                    <div class="form-group">
+                        <label for="brandVideoAssetIds">Video Asset IDs <span class="required">*</span></label>
+                        <input type="text" id="brandVideoAssetIds" required>
+                        <div class="help-text">Asset ID from Brand Assets Tab</div>
+                    </div>
+                    <div class="form-group">
+                        <label for="brandVideoName">Brand Name <span class="required">*</span></label>
+                        <input type="text" id="brandVideoName" required>
+                        <div class="help-text">Your registered brand name</div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="productCollectionFields" class="format-specific" style="display: none;">
+                <h3>Product Collection Settings</h3>
+                <div class="info">
+                    <strong>Product Collection Structure:</strong> Campaign → Bidding Adjustment → Ad Group → Product Collection Ad → Keywords<br>
+                    <strong>Requirements:</strong> 3 ASINs, Brand Logo, Custom Images, Creative Headline, Brand Name required
+                </div>
+                
+                <div class="form-group">
+                    <label for="productCollectionBrandName">Brand Name <span class="required">*</span></label>
+                    <input type="text" id="productCollectionBrandName" required>
+                    <div class="help-text">Your registered brand name</div>
+                </div>
+                
+                <div class="inline-group">
+                    <div class="form-group">
+                        <label for="landingPageType">Landing Page Type <span class="required">*</span></label>
+                        <select id="landingPageType">
+                            <option value="Product list">Product List (New page)</option>
+                            <option value="Store">Store on Amazon</option>
+                            <option value="Custom">Custom URL</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="brandLogoAssetId">Brand Logo Asset ID <span class="required">*</span></label>
+                        <input type="text" id="brandLogoAssetId" required>
+                        <div class="help-text">Format: amzn1.assetlibrary.asset1.xxxxx</div>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="landingPageUrl">Landing Page URL</label>
+                    <input type="url" id="landingPageUrl">
+                    <div class="help-text">Required for Store/Custom landing page types</div>
+                </div>
+
+                <div class="form-group">
+                    <label for="customImages">Custom Images <span class="required">*</span></label>
+                    <textarea id="customImages" rows="3" placeholder='[{"assetId":"amzn1.assetlibrary.asset1.id1","crop":{"left":"0","top":"354","width":"4950","height":"2591"}}]'></textarea>
+                    <div class="help-text">Required JSON format with asset IDs and crop settings</div>
+                </div>
+            </div>
+
+            <div id="storeSpotlightFields" class="format-specific" style="display: none;">
+                <h3>Store Spotlight Settings</h3>
+                <div class="info">
+                    <strong>Requirements:</strong> 3 ASINs, Brand Name, Creative Headline required
+                </div>
+                
+                <div class="inline-group">
+                    <div class="form-group">
+                        <label for="storeSpotlightBrandName">Brand Name <span class="required">*</span></label>
+                        <input type="text" id="storeSpotlightBrandName" required>
+                        <div class="help-text">Your registered brand name</div>
+                    </div>
+                    <div class="form-group">
+                        <label for="subPages">Sub-pages</label>
+                        <textarea id="subPages" rows="2"></textarea>
+                        <div class="help-text">Store sub-pages configuration</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Campaign Details</h2>
+            <div class="inline-group">
+                <div class="form-group">
+                    <label for="campaignName">Campaign Name <span class="required">*</span></label>
+                    <input type="text" id="campaignName" required onchange="updatePreview()">
+                    <div class="help-text">Base name for all campaigns</div>
+                </div>
+                <div class="form-group">
+                    <label for="budget">Budget <span class="required">*</span></label>
+                    <input type="number" id="budget" min="1" step="0.01" required>
+                    <div class="help-text">Same budget for all campaigns</div>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="portfolioId">Portfolio ID</label>
+                <input type="text" id="portfolioId">
+                <div class="help-text">Optional - same for all campaigns</div>
+            </div>
+            
+            <div class="inline-group">
+                <div class="form-group" id="creativeHeadlineGroup">
+                    <label for="creativeHeadline">Creative Headline <span class="required">*</span></label>
+                    <input type="text" id="creativeHeadline" maxlength="50">
+                    <div class="help-text">Maximum 50 characters - same for all campaigns</div>
+                </div>
+                <div class="form-group">
+                    <label for="creativeAsins">Creative ASINs <span class="required">*</span></label>
+                    <input type="text" id="creativeAsins" required>
+                    <div class="help-text" id="asinHelpText">For Video: Enter exactly 1 ASIN (the product to feature)</div>
+                </div>
+            </div>
+            
+            <div class="inline-group">
+                <div class="form-group">
+                    <label for="matchType">Match Type <span class="required">*</span></label>
+                    <select id="matchType">
+                        <option value="broad">Broad</option>
+                        <option value="phrase">Phrase</option>
+                        <option value="exact">Exact</option>
+                    </select>
+                    <div class="help-text">Same match type for all keywords</div>
+                </div>
+                <div class="form-group">
+                    <label for="bid">Bid <span class="required">*</span></label>
+                    <input type="number" id="bid" min="0.01" step="0.01" required>
+                    <div class="help-text">Same bid for all keywords</div>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="keywordText">Keyword Text <span class="required">*</span></label>
+                <textarea id="keywordText" rows="5" required onchange="updatePreview()"></textarea>
+                <div class="help-text">Enter all keywords separated by commas or line breaks</div>
+            </div>
+        </div>
+
+        <div id="previewSection" class="preview-section" style="display: none;">
+            <h3>Campaign Preview</h3>
+            <div id="campaignPreview"></div>
+        </div>
+
+        <div class="section">
+            <button type="button" onclick="updatePreview()" class="generate-btn">Preview Campaigns</button>
+            <button type="button" onclick="generateBulksheet()" class="generate-btn">Generate Excel File</button>
+        </div>
+
+        <div id="outputSection" class="output-section" style="display: none;">
+            <h2>Generated Excel Bulksheet</h2>
+            <p>Your Excel file has been automatically downloaded. Preview shown below:</p>
+            <div id="output"></div>
+            <button type="button" onclick="copyToClipboard()" class="copy-btn">Copy Preview to Clipboard</button>
+            <button type="button" onclick="generateBulksheet()" class="copy-btn">Generate New Excel File</button>
+        </div>
+    </div>
+
+    <script>
+        function toggleBidAdjustment() {
+            const bidOptimization = document.getElementById('bidOptimization').value;
+            const section = document.getElementById('bidAdjustmentSection');
+            section.style.display = bidOptimization === 'false' ? 'block' : 'none';
+        }
+
+        function toggleAdFormatFields() {
+            console.log('toggleAdFormatFields called');
+            const adFormat = document.getElementById('adFormat').value;
+            console.log('Current ad format:', adFormat);
+            
+            // Hide all format-specific sections
+            document.getElementById('productCollectionFields').style.display = 'none';
+            document.getElementById('videoFields').style.display = 'none';
+            document.getElementById('storeSpotlightFields').style.display = 'none';
+
+            // Get creative headline elements
+            const creativeHeadlineGroup = document.getElementById('creativeHeadlineGroup');
+            const creativeHeadlineInput = document.getElementById('creativeHeadline');
+            const asinHelpText = document.getElementById('asinHelpText');
+            
+            console.log('Elements found:', {
+                creativeHeadlineGroup: !!creativeHeadlineGroup,
+                creativeHeadlineInput: !!creativeHeadlineInput,
+                asinHelpText: !!asinHelpText
+            });
+            
+            // Reset styles first
+            if (creativeHeadlineGroup) {
+                creativeHeadlineGroup.style.display = 'block';
+                creativeHeadlineGroup.classList.remove('hidden');
+            }
+            if (creativeHeadlineInput) {
+                creativeHeadlineInput.required = false;
+            }
+            
+            if (adFormat === 'productCollection') {
+                console.log('Setting up product collection');
+                document.getElementById('productCollectionFields').style.display = 'block';
+                if (asinHelpText) asinHelpText.textContent = 'For Product Collection: Enter exactly 3 ASINs separated by commas';
+                if (creativeHeadlineInput) creativeHeadlineInput.required = true;
+            } else if (adFormat === 'video') {
+                console.log('Setting up video - hiding creative headline');
+                document.getElementById('videoFields').style.display = 'block';
+                if (asinHelpText) asinHelpText.textContent = 'For Video: Enter exactly 1 ASIN (the product to feature)';
+                if (creativeHeadlineGroup) {
+                    creativeHeadlineGroup.style.display = 'none';
+                    creativeHeadlineGroup.classList.add('hidden');
+                }
+                if (creativeHeadlineInput) {
+                    creativeHeadlineInput.required = false;
+                    creativeHeadlineInput.value = '';
+                }
+            } else if (adFormat === 'brandVideo') {
+                console.log('Setting up brand video - showing creative headline');
+                document.getElementById('videoFields').style.display = 'block';
+                if (asinHelpText) asinHelpText.textContent = 'For Brand Video: Enter exactly 3 ASINs separated by commas';
+                if (creativeHeadlineGroup) {
+                    creativeHeadlineGroup.style.display = 'block';
+                    creativeHeadlineGroup.classList.remove('hidden');
+                }
+                if (creativeHeadlineInput) creativeHeadlineInput.required = true;
+            } else if (adFormat === 'storeSpotlight') {
+                console.log('Setting up store spotlight');
+                document.getElementById('storeSpotlightFields').style.display = 'block';
+                if (asinHelpText) asinHelpText.textContent = 'For Store Spotlight: Enter exactly 3 ASINs separated by commas';
+                if (creativeHeadlineInput) creativeHeadlineInput.required = true;
+            }
+            
+            console.log('toggleAdFormatFields completed');
+        }
+
+        function updatePreview() {
+            const keywordText = document.getElementById('keywordText').value.trim();
+            const keywordsPerAdGroup = parseInt(document.getElementById('keywordsPerAdGroup').value);
+            const campaignName = document.getElementById('campaignName').value.trim();
+            
+            if (!keywordText || !campaignName || keywordsPerAdGroup <= 0) {
+                document.getElementById('previewSection').style.display = 'none';
+                return;
+            }
+
+            const keywords = keywordText.split(/[,\n]/).map(k => k.trim()).filter(k => k);
+            const numCampaigns = Math.ceil(keywords.length / keywordsPerAdGroup);
+            
+            let previewHTML = `<strong>Will create ${numCampaigns} campaigns with ${keywords.length} total keywords:</strong><br><br>`;
+            
+            for (let i = 0; i < numCampaigns; i++) {
+                const startIdx = i * keywordsPerAdGroup;
+                const endIdx = Math.min(startIdx + keywordsPerAdGroup, keywords.length);
+                const campaignKeywords = keywords.slice(startIdx, endIdx);
+                const displayName = i === 0 ? campaignName : `${campaignName} (${i})`;
+                
+                previewHTML += `
+                    <div class="campaign-preview">
+                        <strong>${displayName}</strong><br>
+                        Keywords (${campaignKeywords.length}): ${campaignKeywords.join(', ')}
+                    </div>
+                `;
+            }
+            
+            document.getElementById('campaignPreview').innerHTML = previewHTML;
+            document.getElementById('previewSection').style.display = 'block';
+        }
+
+        function getBrandName(adFormat) {
+            switch(adFormat) {
+                case 'video':
+                    return null; // Video format doesn't need brand name
+                case 'brandVideo':
+                    return document.getElementById('brandVideoName').value.trim();
+                case 'productCollection':
+                    return document.getElementById('productCollectionBrandName').value.trim();
+                case 'storeSpotlight':
+                    return document.getElementById('storeSpotlightBrandName').value.trim();
+                default:
+                    return null;
+            }
+        }
+
+        function getVideoAssetIds(adFormat) {
+            if (adFormat === 'video') {
+                return document.getElementById('videoAssetIds').value.trim();
+            } else if (adFormat === 'brandVideo') {
+                return document.getElementById('brandVideoAssetIds').value.trim();
+            }
+            return '';
+        }
+
+        function generateBulksheet() {
+            const keywordText = document.getElementById('keywordText').value.trim();
+            const keywordsPerAdGroup = parseInt(document.getElementById('keywordsPerAdGroup').value);
+            const campaignName = document.getElementById('campaignName').value.trim();
+            const budget = document.getElementById('budget').value;
+            const portfolioId = document.getElementById('portfolioId').value;
+            const creativeHeadline = document.getElementById('creativeHeadline').value.trim();
+            const creativeAsins = document.getElementById('creativeAsins').value.trim();
+            const matchType = document.getElementById('matchType').value;
+            const bid = document.getElementById('bid').value;
+
+            // Global settings
+            const startDate = formatDate(document.getElementById('startDate').value);
+            const budgetType = document.getElementById('budgetType').value;
+            const bidOptimization = document.getElementById('bidOptimization').value;
+            const brandEntityId = document.getElementById('brandEntityId').value;
+            const adFormat = document.getElementById('adFormat').value;
+            
+            // Get brand name based on format
+            const brandName = getBrandName(adFormat);
+
+            // Basic validation
+            if (!keywordText || !campaignName || !budget || !creativeAsins || !bid) {
+                alert('Please fill in all required fields.');
+                return;
+            }
+            
+            // Validate brand name for formats that require it
+            if (adFormat !== 'video' && !brandName) {
+                alert('Brand Name is required for Product Collection, Store Spotlight, and Brand Video campaigns.');
+                return;
+            }
+            
+            // Creative headline validation
+            const isVideoOnlyFormat = (adFormat === 'video');
+            if (!isVideoOnlyFormat && !creativeHeadline) {
+                alert('Creative Headline is required for Product Collection, Store Spotlight, and Brand Video campaigns.');
+                return;
+            }
+
+            // Format-specific validation
+            if (adFormat === 'video') {
+                const videoAssetIds = getVideoAssetIds(adFormat);
+                if (!videoAssetIds) {
+                    alert('Video Asset IDs are required for video campaigns.');
+                    return;
+                }
+                
+                // Validate ASIN count for video (should be 1)
+                const asinArray = creativeAsins.split(',').map(a => a.trim()).filter(a => a);
+                if (asinArray.length !== 1) {
+                    alert('Video campaigns require exactly 1 Creative ASIN.');
+                    return;
+                }
+            } else if (adFormat === 'brandVideo') {
+                const videoAssetIds = getVideoAssetIds(adFormat);
+                if (!videoAssetIds) {
+                    alert('Video Asset IDs are required for brand video campaigns.');
+                    return;
+                }
+                
+                // Validate ASIN count for brand video (should be 3)
+                const asinArray = creativeAsins.split(',').map(a => a.trim()).filter(a => a);
+                if (asinArray.length !== 3) {
+                    alert('Brand Video campaigns require exactly 3 Creative ASINs separated by commas.');
+                    return;
+                }
+            } else if (adFormat === 'productCollection') {
+                const brandLogoAssetId = document.getElementById('brandLogoAssetId').value.trim();
+                const customImages = document.getElementById('customImages').value.trim();
+                if (!brandLogoAssetId || !customImages) {
+                    alert('Brand Logo Asset ID and Custom Images are required for Product Collection campaigns.');
+                    return;
+                }
+                
+                // Validate ASIN count for product collection (should be 3)
+                const asinArray = creativeAsins.split(',').map(a => a.trim()).filter(a => a);
+                if (asinArray.length !== 3) {
+                    alert('Product Collection campaigns require exactly 3 Creative ASINs separated by commas.');
+                    return;
+                }
+            }
+
+            const keywords = keywordText.split(/[,\n]/).map(k => k.trim()).filter(k => k);
+            if (keywords.length === 0) {
+                alert('Please enter at least one keyword.');
+                return;
+            }
+
+            const numCampaigns = Math.ceil(keywords.length / keywordsPerAdGroup);
+
+            const headers = [
+                'Product', 'Entity', 'Operation', 'Campaign ID', 'Portfolio ID', 'Ad Group ID', 'Ad ID', 
+                'Keyword ID', 'Product Targeting ID', 'Campaign Name', 'Ad Group Name', 'Ad Name', 
+                'Start Date', 'End Date', 'State', 'Brand Entity ID', 'Budget Type', 'Budget', 
+                'Bid Optimization', 'Product Location', 'Bid', 'Placement', 'Percentage', 'Keyword Text', 
+                'Match Type', 'Native Language Keyword', 'Native Language Locale', 'Product Targeting Expression', 
+                'Landing Page URL', 'Landing Page ASINs', 'Landing Page Type', 'Brand Name', 
+                'Consent To Translate', 'Brand Logo Asset ID', 'Brand Logo Crop', 'Custom Images', 
+                'Creative Headline', 'Creative ASINs', 'Video Asset IDs', 'Sub-pages'
+            ];
+
+            // Create array of arrays for Excel generation
+            const worksheetData = [headers];
+
+            for (let i = 0; i < numCampaigns; i++) {
+                const startIdx = i * keywordsPerAdGroup;
+                const endIdx = Math.min(startIdx + keywordsPerAdGroup, keywords.length);
+                const campaignKeywords = keywords.slice(startIdx, endIdx);
+                const currentCampaignName = i === 0 ? campaignName : `${campaignName} (${i})`;
+                
+                // Campaign row
+                const campaignRow = Array(40).fill(null);
+                campaignRow[0] = 'Sponsored Brands';
+                campaignRow[1] = 'Campaign';
+                campaignRow[2] = 'Create';
+                campaignRow[3] = currentCampaignName;
+                campaignRow[4] = portfolioId || null;
+                campaignRow[9] = currentCampaignName;
+                campaignRow[12] = startDate || null;
+                campaignRow[14] = 'enabled';
+                campaignRow[15] = brandEntityId || null;
+                campaignRow[16] = budgetType;
+                campaignRow[17] = parseFloat(budget);
+                campaignRow[18] = bidOptimization === 'true';
+                worksheetData.push(campaignRow);
+
+                // For Product Collection: Add bidding adjustments (if manual bidding)
+                if (bidOptimization === 'false' && adFormat === 'productCollection') {
+                    const placements = ['Home', 'Detail page', 'Other'];
+                    const adjustments = [
+                        document.getElementById('homeAdjustment').value,
+                        document.getElementById('detailAdjustment').value,
+                        document.getElementById('otherAdjustment').value
+                    ];
+
+                    placements.forEach((placement, idx) => {
+                        if (adjustments[idx]) {
+                            const bidAdjRow = Array(40).fill(null);
+                            bidAdjRow[0] = 'Sponsored Brands';
+                            bidAdjRow[1] = 'Bidding adjustment by placement';
+                            bidAdjRow[2] = 'Create';
+                            bidAdjRow[3] = currentCampaignName;
+                            bidAdjRow[21] = placement;
+                            bidAdjRow[22] = adjustments[idx] + '%';
+                            worksheetData.push(bidAdjRow);
+                        }
+                    });
+                }
+
+                // Ad Group row
+                const adGroupRow = Array(40).fill(null);
+                adGroupRow[0] = 'Sponsored Brands';
+                adGroupRow[1] = 'Ad Group';
+                adGroupRow[2] = 'Create';
+                adGroupRow[3] = currentCampaignName;
+                adGroupRow[5] = currentCampaignName; // Ad Group ID = Campaign Name
+                adGroupRow[10] = currentCampaignName; // Ad group name = Campaign Name
+                adGroupRow[14] = 'enabled';
+                worksheetData.push(adGroupRow);
+
+                // Ad row (different based on format)
+                const adRow = Array(40).fill(null);
+                adRow[0] = 'Sponsored Brands';
+                adRow[1] = getAdEntityName(adFormat);
+                adRow[2] = 'Create';
+                adRow[3] = currentCampaignName;
+                adRow[5] = currentCampaignName; // Ad Group ID
+                adRow[11] = getAdName(adFormat, currentCampaignName); // Ad name
+                adRow[14] = 'enabled';
+                adRow[15] = brandEntityId || null;
+                
+                // Format-specific fields
+                if (adFormat === 'productCollection') {
+                    adRow[28] = document.getElementById('landingPageUrl').value || null;
+                    adRow[30] = document.getElementById('landingPageType').value;
+                    adRow[31] = brandName; // Brand name from product collection field
+                    adRow[33] = document.getElementById('brandLogoAssetId').value || null;
+                    adRow[35] = document.getElementById('customImages').value || null;
+                    adRow[36] = creativeHeadline;
+                    adRow[37] = creativeAsins;
+                } else if (adFormat === 'video') {
+                    // Regular Video: 1 ASIN, no creative headline, no brand name
+                    const primaryAsin = creativeAsins.trim();
+                    
+                    adRow[28] = `https://www.amazon.com/dp/${primaryAsin}`; // Landing Page URL
+                    adRow[30] = 'Detail Page'; // Landing Page Type  
+                    // No brand name for video campaigns (adRow[31] stays null)
+                    // No creative headline for regular video campaigns (adRow[36] stays null)
+                    adRow[37] = primaryAsin; // Creative ASINs (single ASIN for video)
+                    adRow[38] = getVideoAssetIds(adFormat); // Video Asset IDs
+                } else if (adFormat === 'brandVideo') {
+                    // Brand Video: 3 ASINs, creative headline required, brand name required
+                    const asinArray = creativeAsins.split(',').map(a => a.trim());
+                    const primaryAsin = asinArray[0]; // Use first ASIN for landing page
+                    
+                    adRow[28] = `https://www.amazon.com/dp/${primaryAsin}`; // Landing Page URL to first ASIN
+                    adRow[30] = 'Detail Page'; // Landing Page Type  
+                    adRow[31] = brandName; // Brand name from brand video field
+                    adRow[36] = creativeHeadline; // Creative headline IS included for brand video
+                    adRow[37] = creativeAsins; // All 3 ASINs for brand video
+                    adRow[38] = getVideoAssetIds(adFormat); // Video Asset IDs
+                } else if (adFormat === 'storeSpotlight') {
+                    adRow[28] = document.getElementById('landingPageUrl').value || null;
+                    adRow[30] = 'Store';
+                    adRow[31] = brandName; // Brand name from store spotlight field
+                    adRow[36] = creativeHeadline;
+                    adRow[39] = document.getElementById('subPages').value || null;
+                }
+
+                worksheetData.push(adRow);
+
+                // Keyword rows
+                campaignKeywords.forEach(keyword => {
+                    const keywordRow = Array(40).fill(null);
+                    keywordRow[0] = 'Sponsored Brands';
+                    keywordRow[1] = 'Keyword';
+                    keywordRow[2] = 'Create';
+                    keywordRow[3] = currentCampaignName;
+                    keywordRow[5] = currentCampaignName; // Ad Group ID
+                    keywordRow[14] = 'enabled';
+                    keywordRow[20] = parseFloat(bid);
+                    keywordRow[23] = keyword;
+                    keywordRow[24] = matchType;
+
+                    worksheetData.push(keywordRow);
+                });
+            }
+
+            // Generate Excel file
+            generateExcelFile(worksheetData);
+        }
+
+        function getAdEntityName(adFormat) {
+            switch(adFormat) {
+                case 'productCollection': return 'Product collection ad';
+                case 'video': return 'Video ad';
+                case 'storeSpotlight': return 'Store spotlight ad';
+                case 'brandVideo': return 'Video ad'; // Brand video also uses "Video ad" entity
+                default: return 'Video ad';
+            }
+        }
+
+        function getAdName(adFormat, campaignName) {
+            switch(adFormat) {
+                case 'video': 
+                case 'brandVideo':
+                    return `Video ad - ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}`;
+                case 'productCollection':
+                    return campaignName;
+                case 'storeSpotlight':
+                    return `Store spotlight - ${campaignName}`;
+                default: 
+                    return `Video ad - ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}`;
+            }
+        }
+
+        function generateExcelFile(worksheetData) {
+            try {
+                if (typeof XLSX === 'undefined') {
+                    alert('Excel library not loaded. Please refresh the page and try again.');
+                    return;
+                }
+
+                // Create a new workbook and worksheet
+                const wb = XLSX.utils.book_new();
+                const ws = XLSX.utils.aoa_to_sheet(worksheetData);
+
+                // Set column widths to match Amazon's format
+                const colWidths = [];
+                for (let i = 0; i < 40; i++) {
+                    colWidths.push({wch: 20}); // Default width
+                }
+                // Set specific widths for important columns
+                colWidths[0] = {wch: 18}; // Product
+                colWidths[1] = {wch: 30}; // Entity
+                colWidths[3] = {wch: 25}; // Campaign ID
+                colWidths[9] = {wch: 25}; // Campaign name
+                colWidths[23] = {wch: 30}; // Keyword text
+                colWidths[31] = {wch: 20}; // Brand name
+                colWidths[36] = {wch: 30}; // Creative headline
+                colWidths[37] = {wch: 40}; // Creative ASINs
+
+                ws['!cols'] = colWidths;
+
+                // Add the worksheet to the workbook
+                XLSX.utils.book_append_sheet(wb, ws, "Sponsored Brands");
+
+                // Generate filename with current date
+                const filename = `SB_Campaigns_${new Date().toISOString().split('T')[0]}.xlsx`;
+
+                // Save the file
+                XLSX.writeFile(wb, filename);
+
+                // Show success message and preview
+                showExcelPreview(worksheetData);
+
+            } catch (error) {
+                console.error('Error generating Excel file:', error);
+                alert('Error generating Excel file: ' + error.message);
+            }
+        }
+
+        function showExcelPreview(data) {
+            // Show a preview of the first few rows
+            let previewHTML = '<h3>Excel File Generated Successfully!</h3>';
+            previewHTML += '<p>File has been downloaded. Preview of first few rows:</p>';
+            previewHTML += '<table border="1" style="border-collapse: collapse; font-size: 12px; max-width: 100%; overflow-x: auto;">';
+            
+            // Show first 10 rows and first 10 columns for preview
+            const previewRows = Math.min(10, data.length);
+            const previewCols = Math.min(10, data[0].length);
+            
+            for (let i = 0; i < previewRows; i++) {
+                previewHTML += '<tr>';
+                for (let j = 0; j < previewCols; j++) {
+                    const cellValue = data[i][j] || '';
+                    const isHeader = i === 0;
+                    previewHTML += `<td style="padding: 4px; ${isHeader ? 'font-weight: bold; background: #f0f0f0;' : ''}">${cellValue}</td>`;
+                }
+                if (data[0].length > previewCols) {
+                    previewHTML += '<td style="padding: 4px;">...</td>';
+                }
+                previewHTML += '</tr>';
+            }
+            
+            if (data.length > previewRows) {
+                previewHTML += '<tr><td colspan="' + (previewCols + 1) + '" style="text-align: center; padding: 8px; font-style: italic;">... and ' + (data.length - previewRows) + ' more rows</td></tr>';
+            }
+            
+            previewHTML += '</table>';
+            previewHTML += `<p><strong>Total:</strong> ${data.length - 1} data rows (+ 1 header row), ${data[0].length} columns</p>`;
+
+            document.getElementById('output').innerHTML = previewHTML;
+            document.getElementById('outputSection').style.display = 'block';
+            document.getElementById('outputSection').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function copyToClipboard() {
+            const table = document.querySelector('#output table');
+            if (table) {
+                let textContent = '';
+                const rows = table.querySelectorAll('tr');
+                rows.forEach(row => {
+                    const cells = row.querySelectorAll('td');
+                    const rowData = [];
+                    cells.forEach(cell => {
+                        if (!cell.textContent.includes('...')) {
+                            rowData.push(cell.textContent);
+                        }
+                    });
+                    if (rowData.length > 0) {
+                        textContent += rowData.join('\t') + '\n';
+                    }
+                });
+                
+                navigator.clipboard.writeText(textContent).then(() => {
+                    alert('Table preview copied to clipboard!');
+                });
+            } else {
+                alert('No table to copy. Please generate the Excel file first.');
+            }
+        }
+
+        function formatDate(dateString) {
+            if (!dateString) return '';
+            const date = new Date(dateString);
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${year}${month}${day}`;
+        }
+
+        // Initialize the page
+        document.addEventListener('DOMContentLoaded', function() {
+            const today = new Date().toISOString().split('T')[0];
+            const startDateInput = document.getElementById('startDate');
+            startDateInput.min = today;
+            
+            // Add event listener to ad format dropdown
+            const adFormatSelect = document.getElementById('adFormat');
+            adFormatSelect.addEventListener('change', function() {
+                console.log('Ad format changed to:', this.value);
+                toggleAdFormatFields();
+            });
+            
+            // Initialize ad format fields immediately
+            setTimeout(function() {
+                toggleAdFormatFields();
+                console.log('Initial toggle executed');
+            }, 500);
+        });
+    </script>
+</body>
+</html>
